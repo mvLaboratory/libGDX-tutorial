@@ -1,0 +1,143 @@
+/**
+ * Created by MV on 17.03.2015.
+ */
+
+package com.MVlab.BrickBreaker.gameObjects;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.math.Vector2;
+import com.badlogic.gdx.physics.box2d.Body;
+import com.badlogic.gdx.physics.box2d.BodyDef;
+import com.badlogic.gdx.physics.box2d.Fixture;
+import com.badlogic.gdx.physics.box2d.FixtureDef;
+import com.badlogic.gdx.physics.box2d.PolygonShape;
+import com.badlogic.gdx.physics.box2d.World;
+import com.MVlab.BrickBreaker.utils.MV_Math;
+
+public class Racket {
+    private Vector2 position;
+    private Vector2 velocity;
+    private Vector2 acceleration;
+
+    private float width;
+    private float height;
+
+    private float physicDeltaX;
+    private float physicDeltaY;
+    private Vector2 physicPosition;
+    private Body physicBody;
+    private BodyDef bodyDef;
+    private float screenDensity;
+    private World physicWorld;
+
+    float targetPosition = 0;
+
+    public Racket(float x, float y, float width, float height, World physicWorld, float screenDensity) {
+        this.width = width;
+        this.height = height;
+        this.physicWorld = physicWorld;
+        this.screenDensity = screenDensity;
+
+        position = new Vector2(x, y);
+        velocity = new Vector2(0, 0);
+        acceleration = new Vector2(0, 0);
+
+        bodyDef = new BodyDef();
+        bodyDef.type = BodyDef.BodyType.KinematicBody;
+        bodyDef.position.set(position);
+
+        physicBody = physicWorld.createBody(bodyDef);
+        physicBody.setType(BodyDef.BodyType.KinematicBody);
+
+        PolygonShape bodyShape = new PolygonShape();
+        bodyShape.setAsBox(width, height);
+
+        FixtureDef fixtureDef = new FixtureDef();
+        fixtureDef.shape = bodyShape;
+        fixtureDef.density = 0.1f;
+        fixtureDef.restitution = 9f;
+
+        Fixture fixture = physicBody.createFixture(fixtureDef);
+
+        // Shape is the only disposable of the lot, so get rid of it
+        bodyShape.dispose();
+    }
+
+    public void update(float delta) {
+        float bodyCenterX = physicBody.getPosition().x;
+        float positionDelta = (targetPosition - bodyCenterX);
+        float absPositionDelta = MV_Math.abs(positionDelta);
+
+        Vector2 presentVelocity = physicBody.getLinearVelocity();
+//        float absVelocity = presentVelocity.x;
+
+
+        Gdx.app.debug("Move+++", "+++============================+++");
+        Gdx.app.debug("bodyCenter", "" + bodyCenterX);
+        Gdx.app.debug("begin", "" + physicBody.getPosition().x);
+        Gdx.app.debug("end", "" + (physicBody.getPosition().x + width / 2));
+        Gdx.app.debug("target", "" + targetPosition);
+        Gdx.app.debug("absPositionDelta", "" + absPositionDelta);
+        Gdx.app.debug("velocity", "" + presentVelocity.x);
+        Gdx.app.debug("move---", "                 ");
+
+       if (absPositionDelta < 1) {
+           if (absPositionDelta < 0.01)
+            presentVelocity.x = 0;
+           else presentVelocity.x = positionDelta * 50;
+       }
+////
+////        if (targetPosition >= physicBody.getPosition().x && targetPosition <= (physicBody.getPosition().x + width / 2)) {
+//////            Gdx.app.log("borders", "left" + physicBody.getPosition().x + ": right " + (physicBody.getPosition().x + width / 2));
+//////            Gdx.app.log("x", "" + physicBody.getPosition().x);
+////            Gdx.app.log("easier", "" + presentVelocity.x);
+////           // if (absVelocity > 10) presentVelocity.x /= 2;
+//            presentVelocity.x = positionDelta * positionDelta * positionDelta;
+////        }
+        physicBody.setLinearVelocity(presentVelocity);
+    }
+
+    public void onClick(float x) {
+        //25 / (136/2) =
+        float density = 25 / 68f;
+        x = (x * density) - 25f;
+        targetPosition = x;
+        float bodyCenterX = physicBody.getPosition().x;
+        float positionDelta = (targetPosition - bodyCenterX);
+
+        Vector2 presentVelocity = physicBody.getLinearVelocity();
+        presentVelocity.x = positionDelta > 0 ? 100 : -100;
+        physicBody.setLinearVelocity(presentVelocity);
+
+//        Gdx.app.debug("click+++", "+++==========================+++");
+//        Gdx.app.debug("bodyCenter", "" + bodyCenterX);
+//        Gdx.app.debug("target", "" + targetPosition);
+//        Gdx.app.debug("positionDelta", "" + positionDelta);
+//        Gdx.app.debug("presentVelocity.x", "" + presentVelocity.x);
+//        Gdx.app.debug("click---", "                    ");
+    }
+
+    public void onDrag(float x) {
+//       targetPosition = x;
+//       float positionDelta = (x - position.x) / 10;
+//       Vector2 presentVelocity = physicBody.getLinearVelocity();
+//       presentVelocity.x = positionDelta;
+//       physicBody.setLinearVelocity(presentVelocity);
+    }
+
+    public float getX() {
+        return position.x;
+    }
+
+    public float getY() {
+        return position.y;
+    }
+
+    public float getWidth() {
+        return width;
+    }
+
+    public float getHeight() {
+        return height;
+    }
+}
